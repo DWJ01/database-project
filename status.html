@@ -1,0 +1,16 @@
+<html>
+<head>
+</head>
+<body>
+<form action="/statusAuth" method = "Post">
+	<input type="text" name = "flight number" placeholder="fligh number" required/></br>
+	<input type="text" name = "arrival/departure date" placeholder = "arrival/departure date" required/></br>
+	<input type="submit" value = Status />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+<p>{{post}}</br></p>
+<a href="/">Go back</a>
+</body>
+</html>
