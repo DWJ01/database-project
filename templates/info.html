@@ -6,8 +6,10 @@
 </head>
 
 <body>
-	<a href="/search">Search</a>
-	<a href="/status">Status</a>
+{% if not message %}
+	<a href="/search">Search for Upcoming Flights</a></br>
+	<a href="/status">Flight Status</a></br>
+{% endif %}
 </body>
 
 </html>

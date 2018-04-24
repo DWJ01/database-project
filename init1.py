@@ -5,6 +5,7 @@ import pymysql.cursors
 #Initialize the app from Flask
 app = Flask(__name__)
 
+
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
                        user='root',
@@ -22,24 +23,24 @@ def hello():
 #Define route for login
 @app.route('/login')
 def login():
-	return render_template('login.html')
+        return render_template('login.html')
+
+@app.route('/info')
+def info():
+        return render_template('info.html')
 
 #Define route for register
 @app.route('/register')
 def register():
 	return render_template('register.html')
 
-@app.route('/info')
-def info():
-        return render_template('info.html')
-
 @app.route('/search')
 def search():
-        return render_template('search.html')
+    return render_template('search.html')
 
 @app.route('/status')
 def status():
-        return render_template('status.html')
+    return render_template('status.html')
 
 @app.route('/searchAuth', methods=['GET', 'POST'])
 def searchAuth():
@@ -71,39 +72,87 @@ def loginAuth():
 	#grabs information from the forms
 	username = request.form['username']
 	password = request.form['password']
-
+	usertype = request.form['usertype']
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
-	query = 'SELECT * FROM user WHERE username = %s and password = %s'
-	cursor.execute(query, (username, password))
-	#stores the results in a variable
+	if usertype == "Customer":
+		query = 'SELECT * FROM customer WHERE email = %s and password = %s'
+		cursor.execute(query, (username, password))
+	elif usertype == "Booking Agent":
+		query = 'SELECT * FROM booking_agent WHERE email = %s and password = %s'
+		cursor.execute(query, (username, password))
+	elif usertype == "Airline Staff":
+		query = 'SELECT * FROM airline_staff WHERE username = %s and password = %s'
+		cursor.execute(query, (username, password))
+    #stores the results in a variable
 	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
 	error = None
 	if(data):
-		#creates a session for the the user
-		#session is a built in
-		session['username'] = username
-		return redirect(url_for('home'))
+		if usertype == "Customer":
+			session['customer'] = username
+			return redirect(url_for('customer_home'))
+		elif usertype == "Booking Agent":
+			session['booking_agent'] = username
+			return redirect(url_for('agent_home'))
+		elif usertype == "Airline Staff":
+			session['airline_staff'] = username
+			return redirect(url_for('staff_home'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid login or username'
 		return render_template('login.html', error=error)
 
-#Authenticates the register
-@app.route('/registerAuth', methods=['GET', 'POST'])
-def registerAuth():
-	#grabs information from the forms
-	username = request.form['username']
-	password = request.form['password']
+@app.route('/customer_home')
+def customer_home():
+	username = session['customer']
+	return render_template('customer_home.html')
 
+@app.route('/agent_home')
+def agent_home():
+	username = session['booking_agent']
+	return render_template('agent_home.html')
+
+@app.route('/staff_home')
+def staff_home():
+	username = session['airline_staff']
+	return render_template('staff_home.html')
+
+@app.route('/customer_register')
+def customer_register():
+	return render_template('customer_register.html')
+
+@app.route('/agent_register')
+def agent_register():
+	return render_template('agent_register.html')
+
+@app.route('/staff_register')
+def staff_register():
+	return render_template('staff_register.html')
+
+@app.route('/c_register', methods=['GET', 'POST'])
+def c_register():
+	#grabs information from the forms
+	email = request.form['email']
+	name = request.form['name']
+	password = request.form['password']
+	b_number = request.form['building number']
+	street = request.form['street']
+	city = request.form['city']
+	state = request.form['state']
+	phone_num = request.form['phone number']
+	pass_num = request.form['passport number']
+	pass_exp = request.form['passport expiration']
+	pass_country = request.form['passport country']
+	dob = request.form['date of birth']
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
-	query = 'SELECT * FROM user WHERE username = %s'
-	cursor.execute(query, (username))
+	query = 'SELECT * FROM customer WHERE email = %s'
+	cursor.execute(query, (email))
+	
 	#stores the results in a variable
 	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
@@ -111,40 +160,89 @@ def registerAuth():
 	if(data):
 		#If the previous query returns data, then user exists
 		error = "This user already exists"
-		return render_template('register.html', error = error)
+		return render_template('customer_register.html', error = error)
 	else:
-		ins = 'INSERT INTO user VALUES(%s, %s)'
-		cursor.execute(ins, (username, password))
+		ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+		cursor.execute(ins, (email, name, password, b_number, street, city, state, phone_num, pass_num, pass_exp, pass_country, dob))
 		conn.commit()
 		cursor.close()
 		return render_template('index.html')
 
-@app.route('/home')
-def home():
-	username = session['username']
-	cursor = conn.cursor();
-	query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-	cursor.execute(query, (username))
-	data = cursor.fetchall()
-	cursor.close()
-	return render_template('home.html', username=username, posts=data)
 
-		
-@app.route('/post', methods=['GET', 'POST'])
-def post():
-	username = session['username']
-	cursor = conn.cursor();
-	blog = request.form['blog']
-	query = 'INSERT INTO blog (blog_post, username) VALUES(%s, %s)'
-	cursor.execute(query, (blog, username))
-	conn.commit()
-	cursor.close()
-	return redirect(url_for('home'))
 
-@app.route('/logout')
-def logout():
-	session.pop('username')
+
+@app.route('/a_register', methods=['GET', 'POST'])
+def a_register():
+	email = request.form['email']
+	password = request.form['password']
+	agent_id = request.form['booking agent id']
+	cursor = conn.cursor()
+	query = 'SELECT * FROM booking_agent WHERE email = %s'
+	cursor.execute(query, (email))
+	data = cursor.fetchone()
+	error = None
+	if(data):
+		#If the previous query returns data, then user exists
+		error = "This user already exists"
+		return render_template('agent_register.html', error = error)
+	else:
+		ins = 'INSERT INTO booking_agent VALUES(%s, %s, %s)'
+		cursor.execute(ins, (email, password, agent_id))
+		conn.commit()
+		cursor.close()
+		return render_template('index.html')
+
+
+	
+
+@app.route('/s_register', methods=['GET', 'POST'])
+def s_register():
+	username = request.form['username']
+	password = request.form['password']
+	f_name = request.form['first name']
+	l_name = request.form['last name']
+	dob = request.form['date of birth']
+	airline_name = request.form['airline name']
+	cursor= conn.cursor()
+	query_1 = 'SELECT * FROM airline_staff WHERE username = %s'
+	cursor.execute(query_1, (username))
+	data_1 = cursor.fetchone()
+	query_2 = 'SELECT * FROM airline_staff WHERE airline_name = %s'
+	cursor.execute(query_2, (airline_name))
+	data_2 = cursor.fetchall()
+	error = None
+	if(data_1):
+		#If the previous query returns data, then user exists
+		error = "This user already exists"
+		return render_template('staff_register.html', error = error)
+	elif(not data_2):
+		#If the previous query returns data, then user exists
+		error = "There is no such airline"
+		return render_template('staff_register.html', error = error)
+	else:
+		ins = 'INSERT INTO airline_staff VALUES(%s, %s, %s, %s, %s, %s)'
+		cursor.execute(ins, (username, password, f_name, l_name, dob, airline_name))
+		conn.commit()
+		cursor.close()
+		return render_template('index.html')
+
+
+
+
+@app.route('/staff_logout')
+def staff_logout():
+	session.pop('airline_staff')
 	return redirect('/')
+
+@app.route('/customer_logout')
+def customer_logout():
+        session.pop('customer')
+        return redirect('/')
+
+@app.route('/agent_logout')
+def agent_logout():
+        session.pop('booking_agent')
+        return redirect('/')
 		
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000

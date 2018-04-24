@@ -1,19 +1,24 @@
+<!DOCTYPE html>
 <html>
 <head>
 </head>
 <body>
-<form action="/registerAuth" method="POST">
-	<input type="text" name = "username" placeholder="username" required/> </br>
-	<input type="password" name = "password" placeholder="password" required/></br>
-	<input type="submit" value = Register />
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-</form>
-
-<a href="/">Go back</a>
-
+	<script type="text/javascript">
+	function setsubmit(){ 
+		if(mylink.value == 0) 
+			window.location.href="/customer_register"; 
+		if(mylink.value == 1) 
+			window.location.href="/agent_register"; 
+		if(mylink.value == 2) 
+			window.location.href="/staff_register"; 
+	} 
+	</script> 
+	<select name="mylink" id="mylink"> 
+		<OPTION value="0">Customer</OPTION> 
+		<OPTION value="1">Booking Agent</OPTION> 
+		<OPTION value="2">Airline Staff</OPTION> 
+	</select></br>
+	<input type="button" id="btn" value="submit" onclick="setsubmit(this)"/></br>
+	<a href="/">Go back</a>
 </body>
-
-
 </html>
