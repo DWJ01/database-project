@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+
+<body>
+<form action="/c_searchAuth" method="POST">
+	<input type="text" name="source" placeholder="source" required/></br>
+	<input type="text" name="destination" placeholder="destination" required/></br>
+	<input type="text" name="date" placeholder="date" required/></br>
+	<input type="submit" value=Search /></br>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	<p>{{post}}</p> 
+</form>
+<a href="/c_purchase">Purchase Page</a></br>
+<a href="/info">Go back</a>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+<form action="/a_viewAuth" method="POST">
+	<input type="text" name="customer" placeholder="customer" required/></br>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+<p>{{post}}</p>
+<a href="/info">Go back</a>
+</body>
+</html>
