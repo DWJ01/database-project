@@ -52,10 +52,10 @@ def searchAuth():
         cursor.close()
         error = None
         if (data):
-                return render_template("search.html", post = data)
+            return render_template("search.html", data = data)
         else:
-                error = "No such flight"
-                return render_template("search.html", error = error)
+            error = "No such flight"
+            return render_template("search.html", error = error)
 
 @app.route('/statusAuth', methods=['GET', 'POST'])
 def statusAuth():

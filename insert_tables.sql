@@ -1,4 +1,4 @@
-0insert into airline values("China Eastern");
+insert into airline values("China Eastern");
 insert into airline values("Emirates");
 insert into airline values("Hokkaido");
 insert into airline values("Hawaiian");

@@ -6,6 +6,9 @@
 </head>
 
 <body>
+<script type="text/javascript">
+	document.getElementById('table1').innerHTML = {{post}}
+</script>
 <form action="/searchAuth" method="POST">
 	<input type="text" name = "source" placeholder="source" required/></br>
 	<input type="text" name = "destination" placeholder = "destination" required></br>
@@ -15,7 +18,32 @@
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
-<p>{{post}}</p>
+<table border="1" id="table1">
+	<tr>
+		<th>airline_name</th>
+		<th>flight_num</th>
+		<th>departure_airport</th>
+		<th>departure_time</th>
+		<th>arrival_airport</th>
+		<th>arrival_time</th>
+		<th>price</th>
+		<th>status</th>
+		<th>airplane_id</th>
+	</tr>
+	{% for dic in data %}
+	<tr>
+		<td>{{dic.airline_name}}</td>
+		<td>{{dic.flight_num}}</td>
+		<td>{{dic.departure_airport}}</td>
+		<td>{{dic.departure_time}}</td>
+		<td>{{dic.arrival_airport}}</td>
+		<td>{{dic.arrival_time}}</td>
+		<td>{{dic.price}}</td>
+		<td>{{dic.status}}</td>
+		<td>{{dic.airplane_id}}</td>
+	</tr>
+	{% endfor %}
+</table>
 <a href="/info">Go back</a>
 </body>
 </html>
