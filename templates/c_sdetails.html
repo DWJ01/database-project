@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<form action="/c_purchaseAuth" method="POST">
-	<input type="text" name="airline name" placeholder="airline name" required/></br>
-	<input type="text" name="flight number" placeholder="flight number" required/></br>
+<form action="/c_sdetailsAuth" method="POST">
+	<input type="text" name="date start" placeholder="date start" required/></br>
+	<input type="text" name="data end" placeholder="date end" required/></br>
 	<input type="submit" value=Search /></br>
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>

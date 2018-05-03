@@ -268,40 +268,39 @@ def c_view():
 	except KeyError:
 		return render_template('wrong.html')
 
-#@app.route('/c_search')
-#def c_search():
-#	return render_template('c_search.html')
+@app.route('/c_search')
+def c_search():
+	return render_template('c_search.html')
 
-#@app.route('/c_searchAuth', methods = ['GET','POST'])
-#def c_searchAuth():
-#	try:
-#		username = session['value']
-#		usertype = session['type']
-#		if usertype == "Customer":
-#			source = request.form['source']
-#			destination = request.form['destination']
-#			date = request.form['date']
-#			cursor = conn.cursor()
-#			query = "SELECT flight.* FROM flight, airport as T1, airport as T2 WHERE departure_airport = T1.airport_name and arrival_airport = T2.airport_name and status = 'upcoming' and (departure_airport = %s or T1.airport_city = %s) and (arrival_airport = %s or T2.airport_city = %s) and date(departure_time) = %s"
-#			cursor.execute(query, (source, source, destination, destination, date))
-#			data = cursor.fetchall()
-#			cursor.close()
-#			error = None
-#			if (data):
-#				return render_template('c_search.html', post = data)
-#			else:
-#				error = "No such flight"
-#				return render_template("c_search.html", error = error)
-#		else:
-#			return render_template('wrong.html')
-#	except KeyError:
-#		return render_template('wrong.html')
+@app.route('/c_searchAuth', methods = ['GET','POST'])
+def c_searchAuth():
+	try:
+		usertype = session['type']
+		if usertype == "Customer":
+			source = request.form['source']
+			destination = request.form['destination']
+			date = request.form['date']
+			cursor = conn.cursor()
+			query = "SELECT flight.* FROM flight, airport as T1, airport as T2 WHERE departure_airport = T1.airport_name and arrival_airport = T2.airport_name and status = 'upcoming' and (departure_airport = %s or T1.airport_city = %s) and (arrival_airport = %s or T2.airport_city = %s) and date(departure_time) = %s"
+			cursor.execute(query, (source, source, destination, destination, date))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				return render_template('c_purchase.html', post = data)
+			else:
+				error = "No such flight"
+				return render_template("c_search.html", error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
 
 @app.route('/c_purchase')
 def c_purchase():
 	return render_template('c_purchase.html')
 
-@app.route('/c_purchaseAuth', methods=['GET', 'POST'])
+@app.route('/c_purchaseAuth', methods = ['GET', 'POST'])
 def c_purchaseAuth():
 	try:
 		usertype = session['type']
@@ -309,13 +308,13 @@ def c_purchaseAuth():
 			airline_name = request.form['airline name']
 			flight_num = request.form['flight number']
 			cursor = conn.cursor()
-			query = "SELECT ticket_id FROM ticket WHERE airline_name = %s and flight_num = %s and ticket_id not in (SELECT ticket_id FROM ticket natural join purchases)"
+			query = 'SELECT ticket_id FROM ticket WHERE airline_name = %s and flight_num = %s and ticket_id not in (SELECT ticket_id from purchases)'
 			cursor.execute(query, (airline_name, flight_num))
 			data = cursor.fetchone()
 			cursor.close()
 			error = None
 			if(data):
-				render_template('c_purchase.html', post= data)
+				return render_template('c_buy.html', post = data)
 			else:
 				error = "No ticket left"
 				return render_template('c_purchase.html', error = error)
@@ -323,6 +322,85 @@ def c_purchaseAuth():
 			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
+
+@app.route('/c_buy')
+def c_buy():
+	return render_template('c_buy.html')
+
+@app.route('/c_buyAuth', methods = ['GET', 'POST'])
+def c_buyAuth():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Customer":
+			ticket_id = request.form['ticket id']
+			cursor = conn.cursor()
+			query = 'INSERT INTO purchases values (%s, %s, null, CURRENT_DATE())'
+			cursor.execute(query, (ticket_id, username))
+			conn.commit()
+			cursor.close()
+			return render_template('customer_home.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/c_spending')
+def c_spending():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Customer":
+			cursor = conn.cursor()
+			query = 'SELECT sum(price) FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE())'
+			cursor.execute(query, (username))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				return render_template('c_spending.html', post = data)
+			else:
+				error = "You have not get any ticket."
+				return render_template('c_spending.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/c_sdetails')
+def c_sdetails():
+	return render_template('c_sdetails.html')
+
+@app.route('/c_sdetailsAuth', methods = ['GET', 'POST'])
+def c_sdetailsAuth():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Customer":
+			date_start = request.form["date start"]
+			date_end = request.form["date end"]
+			cursor = conn.cursor()
+			query = 'SELECT sum(price) FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN %s AND %s)'
+			cursor.execute(query, (username, date_start, date_end))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				return render_template('c_sdetails.html', post = data)
+			else:
+				error = "You did not buy any ticket in this period."
+				return render_template('c_sdetails.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+
+
+
+
+
+
 
 @app.route('/a_view')
 def a_view():
