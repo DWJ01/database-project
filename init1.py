@@ -736,7 +736,7 @@ def s_rmonth():
 		usertype = session['type']
 		if usertype == "Airline Staff":
 			cursor = conn.cursor()
-			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(),INTERVAL 1 MONTH)'
+			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 MONTH) AND CURRENT_DATE()'
 			cursor.execute(query)
 			data = cursor.fetchall()
 			cursor.close()
