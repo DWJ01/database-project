@@ -1,3 +1,6 @@
+from pyecharts import Bar
+from pyecharts import Pie
+from pyecharts import Page
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
@@ -5,6 +8,7 @@ import pymysql.cursors
 #Initialize the app from Flask
 app = Flask(__name__)
 
+REMOTE_HOST = "https://pyecharts.github.io/assets/js"
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -357,8 +361,21 @@ def c_spending():
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
+			print(data)
 			if (data):
-				return render_template('c_spending.html', post = data)
+				cursor = conn.cursor()
+				query = 'SELECT month(purchase_date) as month, sum(price) as money1 FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH) AND CURRENT_DATE()) GROUP BY month ORDER BY month'
+				cursor.execute(query, (username))
+				bardata = cursor.fetchall()
+				cursor.close()
+				bar = Bar('Track my Spending')
+				xbar = []
+				ybar =[]
+				for dic in bardata:
+					xbar.append(dic['month'])
+					ybar.append(int(dic['money1']))
+				bar.add('money',xbar,ybar)
+				return render_template('c_spending.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
 				error = "You have not get any ticket."
 				return render_template('c_spending.html', error = error)
@@ -386,7 +403,19 @@ def c_sdetailsAuth():
 			cursor.close()
 			error = None
 			if (data):
-				return render_template('c_sdetails.html', post = data)
+				cursor = conn.cursor()
+				query = 'SELECT month(purchase_date) as month, sum(price) as money1 FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN %s AND %s) GROUP BY month ORDER BY month'
+				cursor.execute(query, (username, date_start, date_end))
+				bardata = cursor.fetchall()
+				cursor.close()
+				bar = Bar('Track my Spending')
+				xbar = []
+				ybar =[]
+				for dic in bardata:
+					xbar.append(dic['month'])
+					ybar.append(int(dic['money1']))
+				bar.add('money',xbar,ybar)
+				return render_template('c_sdetails.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
 				error = "You have not get any ticket."
 				return render_template('c_sdetails.html', error = error)
@@ -514,13 +543,20 @@ def a_topmonth():
 		usertype = session['type']
 		if usertype == "Booking Agent":
 			cursor = conn.cursor()
-			query = "SELECT customer_email, count(ticket_id) FROM purchases, booking_agent WHERE purchases.booking_agent_id = booking_agent.booking_agent_id AND email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH) AND CURRENT_DATE())  GROUP BY customer_email ORDER BY count(ticket_id) DESC LIMIT 5"
+			query = "SELECT customer_email as email, count(ticket_id) as num FROM purchases, booking_agent WHERE purchases.booking_agent_id = booking_agent.booking_agent_id AND email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 6 MONTH) AND CURRENT_DATE())  GROUP BY customer_email ORDER BY count(ticket_id) DESC LIMIT 5"
 			cursor.execute(query, (username))
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
 			if (data):
-				return render_template('a_topmonth.html', post = data)
+				bar = Bar('View top Customers in the past 6 months')
+				xbar = []
+				ybar =[]
+				for dic in data:
+					xbar.append(dic['email'])
+					ybar.append(int(dic['num']))
+				bar.add('ticket number',xbar,ybar)
+				return render_template('a_topmonth.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
 				error = "No customer"
 				return render_template('a_topmonth.html', error = error)
@@ -536,13 +572,20 @@ def a_topyear():
 		usertype = session['type']
 		if usertype == "Booking Agent":
 			cursor = conn.cursor()
-			query = "SELECT customer_email, count(ticket_id) FROM purchases, booking_agent WHERE purchases.booking_agent_id = booking_agent.booking_agent_id AND email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE())  GROUP BY customer_email ORDER BY count(ticket_id) DESC LIMIT 5"
+			query = "SELECT customer_email as email, sum(price) * 0.1 as commission FROM purchases, booking_agent, flight, ticket WHERE purchases.booking_agent_id = booking_agent.booking_agent_id AND ticket.ticket_id = purchases.ticket_id AND ticket.airline_name = flight.airline_name AND ticket.flight_num = flight.flight_num AND email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()) GROUP BY customer_email ORDER BY sum(price) * 0.1 DESC LIMIT 5"
 			cursor.execute(query, (username))
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
 			if (data):
-				return render_template('a_topyear.html', post = data)
+				bar = Bar('View top Customers in the last year')
+				xbar = []
+				ybar =[]
+				for dic in data:
+					xbar.append(dic['email'])
+					ybar.append(int(dic['commission']))
+				bar.add('commission',xbar,ybar)
+				return render_template('a_topyear.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
 				error = "No customer"
 				return render_template('a_topyear.html', error = error)
@@ -605,8 +648,10 @@ def s_viewflightAuth():
 @app.route('/s_report')
 def s_report():
 	try:
+		username = session['value']
 		usertype = session['type']
 		if usertype == "Airline Staff":
+
 			return render_template('s_report.html')
 		else:
 			return render_template('wrong.html')
@@ -631,7 +676,19 @@ def s_rdatesAuth():
 			cursor.close()
 			error = None
 			if(data):
-				return render_template('s_rdates.html', post = data)
+				cursor = conn.cursor()
+				query = 'SELECT month(purchase_date) as month, count(ticket_id) as num FROM purchases WHERE purchase_date BETWEEN %s AND %s GROUP BY month ORDER BY month'
+				cursor.execute(query, (start, end))
+				bardata = cursor.fetchall()
+				cursor.close()
+				xbar = []
+				ybar = []
+				for dic in bardata:
+					xbar.append(dic['month'])
+					ybar.append(int(dic['num']))
+				bar = Bar('View report in a range')
+				bar.add('number of tickets', xbar, ybar)
+				return render_template('s_rdates.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
 				error = "No ticket is sold out."
 				return render_template('s_rdates.html', error = error)
@@ -646,13 +703,25 @@ def s_ryear():
 		usertype = session['type']
 		if usertype == "Airline Staff":
 			cursor = conn.cursor()
-			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(),INTERVAL 1 YEAR)'
+			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()'
 			cursor.execute(query)
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
 			if(data):
-				return render_template('s_ryear.html', post = data)
+				cursor = conn.cursor()
+				query = 'SELECT month(purchase_date) as month, count(ticket_id) as num FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE() GROUP BY month ORDER BY month'
+				cursor.execute(query)
+				bardata = cursor.fetchall()
+				cursor.close()
+				xbar = []
+				ybar = []
+				for dic in bardata:
+					xbar.append(dic['month'])
+					ybar.append(int(dic['num']))
+				bar = Bar('View report last year')
+				bar.add('number of tickets', xbar, ybar)
+				return render_template('s_ryear.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
 				error = "No ticket is sold out."
 				return render_template('s_ryear.html', error = error)
@@ -685,9 +754,10 @@ def s_rmonth():
 @app.route('/s_compare')
 def s_compare():
 	try:
+		username = session['value']
 		usertype = session['type']
 		if usertype == "Airline Staff":
-			return render_template('s_compare.html', post = data)
+			return render_template('s_compare.html')
 		else:
 			return render_template('wrong.html')
 	except KeyError:
@@ -709,7 +779,22 @@ def s_compareyear():
 			indirect = cursor.fetchone()
 			cursor.close()
 			error = None
-			return render_template('s_compareyear.html', post = direct), render_template('s_compareyear.html', post = indirect)
+			xpie = ['direct sale', 'indirect sale']
+			ypie = []
+			print(direct, indirect)
+			for key in direct:
+				if direct[key] == None:
+					ypie.append(0)
+				else:
+					ypie.append(int(direct[key]))
+			for key in indirect:
+				if indirect[key] == None:
+					ypie.append(0)
+				else:
+					ypie.append(int(indirect[key]))
+			pie = Pie('Comparison of Revenue in last year')
+			pie.add('',xpie,ypie,is_label_show = True)
+			return render_template('s_compareyear.html', myechart = pie.render_embed(), host = REMOTE_HOST, script_list=pie.get_js_dependencies())
 		else:
 			return render_template('wrong.html')
 	except KeyError:
@@ -731,7 +816,21 @@ def s_comparemonth():
 			indirect = cursor.fetchone()
 			cursor.close()
 			error = None
-			return render_template('s_comparemonth.html', post = direct), render_template('s_comparemonth.html', post = indirect)
+			xpie = ['direct sale', 'indirect sale']
+			ypie = []
+			for key in direct:
+				if direct[key] == None:
+					ypie.append(0)
+				else:
+					ypie.append(int(direct[key]))
+			for key in indirect:
+				if indirect[key] == None:
+					ypie.append(0)
+				else:
+					ypie.append(int(indirect[key]))
+			pie = Pie('Comparison of Revenue in last month')
+			pie.add('',xpie,ypie,is_label_show = True)
+			return render_template('s_comparemonth.html', myechart = pie.render_embed(), host = REMOTE_HOST, script_list=pie.get_js_dependencies())
 		else:
 			return render_template('wrong.html')
 	except KeyError:
