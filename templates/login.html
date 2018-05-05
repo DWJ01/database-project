@@ -5,7 +5,13 @@
 <form action="/loginAuth" method="POST">
 	<input type="text" name = "username" placeholder="username" required/> </br>
 	<input type="password" name = "password" placeholder="password" required/></br>
-	<input type = "text" name = "usertype" placeholder = "usertype" required/></br>
+	<!--<input type = "text" name = "usertype" placeholder = "usertype" required/></br>-->
+	<input list="usertypelist" name="usertype" placeholder="usertype">
+	<datalist id="usertypelist">
+		<option value="Customer">
+		<option value="Booking Agent">
+		<option value="Airline Staff">
+	</datalist>
 	<input type="submit" value = Login />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>

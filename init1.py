@@ -356,7 +356,7 @@ def c_spending():
 		usertype = session['type']
 		if usertype == "Customer":
 			cursor = conn.cursor()
-			query = 'SELECT sum(price) FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE())'
+			query = 'SELECT sum(price) as sum FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE())'
 			cursor.execute(query, (username))
 			data = cursor.fetchall()
 			cursor.close()
@@ -368,12 +368,14 @@ def c_spending():
 				cursor.execute(query, (username))
 				bardata = cursor.fetchall()
 				cursor.close()
-				bar = Bar('Track my Spending')
+				print(bardata)
+				bar = Bar('Track my Spending within 6 months')
 				xbar = []
 				ybar =[]
 				for dic in bardata:
 					xbar.append(dic['month'])
 					ybar.append(int(dic['money1']))
+				print(xbar,ybar)
 				bar.add('money',xbar,ybar)
 				return render_template('c_spending.html', post = data, myechart = bar.render_embed(), host = REMOTE_HOST, script_list=bar.get_js_dependencies())
 			else:
@@ -397,7 +399,7 @@ def c_sdetailsAuth():
 			date_start = request.form["date start"]
 			date_end = request.form["date end"]
 			cursor = conn.cursor()
-			query = 'SELECT sum(price) FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN %s AND %s)'
+			query = 'SELECT sum(price) as sum FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND (purchase_date BETWEEN %s AND %s)'
 			cursor.execute(query, (username, date_start, date_end))
 			data = cursor.fetchall()
 			cursor.close()
@@ -408,7 +410,7 @@ def c_sdetailsAuth():
 				cursor.execute(query, (username, date_start, date_end))
 				bardata = cursor.fetchall()
 				cursor.close()
-				bar = Bar('Track my Spending')
+				bar = Bar('Track my Spending in a range')
 				xbar = []
 				ybar =[]
 				for dic in bardata:
@@ -670,7 +672,7 @@ def s_rdatesAuth():
 			start = request.form['start']
 			end = request.form['end']
 			cursor = conn.cursor()
-			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN %s AND %s'
+			query = 'SELECT count(ticket_id) as num FROM purchases WHERE purchase_date BETWEEN %s AND %s'
 			cursor.execute(query, (start, end))
 			data = cursor.fetchall()
 			cursor.close()
@@ -703,7 +705,7 @@ def s_ryear():
 		usertype = session['type']
 		if usertype == "Airline Staff":
 			cursor = conn.cursor()
-			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()'
+			query = 'SELECT count(ticket_id) as num FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()'
 			cursor.execute(query)
 			data = cursor.fetchall()
 			cursor.close()
@@ -736,16 +738,16 @@ def s_rmonth():
 		usertype = session['type']
 		if usertype == "Airline Staff":
 			cursor = conn.cursor()
-			query = 'SELECT count(ticket_id) FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 MONTH) AND CURRENT_DATE()'
+			query = 'SELECT count(ticket_id) as num FROM purchases WHERE purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 MONTH) AND CURRENT_DATE()'
 			cursor.execute(query)
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
 			if(data):
-				return render_template('s_rmomth.html', post = data)
+				return render_template('s_rmonth.html', post = data)
 			else:
 				error = "No ticket is sold out."
-				return render_template('s_rmomth.html', error = error)
+				return render_template('s_rmonth.html', error = error)
 		else:
 			return render_template('wrong.html')
 	except KeyError:
@@ -792,7 +794,7 @@ def s_compareyear():
 					ypie.append(0)
 				else:
 					ypie.append(int(indirect[key]))
-			pie = Pie('Comparison of Revenue in last year')
+			pie = Pie('Revenue in last year')
 			pie.add('',xpie,ypie,is_label_show = True)
 			return render_template('s_compareyear.html', myechart = pie.render_embed(), host = REMOTE_HOST, script_list=pie.get_js_dependencies())
 		else:
@@ -828,7 +830,7 @@ def s_comparemonth():
 					ypie.append(0)
 				else:
 					ypie.append(int(indirect[key]))
-			pie = Pie('Comparison of Revenue in last month')
+			pie = Pie('Revenue in last month')
 			pie.add('',xpie,ypie,is_label_show = True)
 			return render_template('s_comparemonth.html', myechart = pie.render_embed(), host = REMOTE_HOST, script_list=pie.get_js_dependencies())
 		else:

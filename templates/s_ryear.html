@@ -13,7 +13,17 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<p><strong>The number of tickets last year</strong></p>
+	<table border="1">
+	<tr>
+		<th>number of tickets</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.num}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 	{{ myechart|safe }}
 	<a href="/staff_home">Go back</a>
 </body>

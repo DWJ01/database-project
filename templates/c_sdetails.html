@@ -17,7 +17,17 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<p><strong>Money spent in this range</strong></p>
+	<table border="1">
+	<tr>
+		<th>the sum of price</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.sum}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 	{{ myechart|safe }} 
 </form>
 <a href="/customer_home">Go back</a>
