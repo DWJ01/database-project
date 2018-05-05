@@ -20,7 +20,6 @@
 		<th>arrival_time</th>
 		<th>price</th>
 		<th>airplane_id</th>
-		<th>status</th>
 	</tr>
 	{% for dic in post %}
 	<tr>
@@ -33,10 +32,10 @@
 		<td>{{dic.arrival_time}}</td>
 		<td>{{dic.price}}</td>
 		<td>{{dic.airplane_id}}</td>
-		<td>{{dic.status}}</td>
 	</tr>
 	{% endfor %}
 	</table>
+	<a href="/c_opview">Specify your flights</a></br>
 	<a href="/customer_home">Go back</a>
 
 </body>

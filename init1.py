@@ -64,7 +64,7 @@ def searchAuth():
 @app.route('/statusAuth', methods=['GET', 'POST'])
 def statusAuth():
         flight_num = request.form['flight number']
-        time = request.form['arrival/departure']
+        time = request.form['time']
         date = request.form['date']
         cursor = conn.cursor()
         if time == "arrival":
@@ -160,20 +160,13 @@ def s_register():
 	dob = request.form['date of birth']
 	airline_name = request.form['airline name']
 	cursor= conn.cursor()
-	query_1 = 'SELECT * FROM airline_staff WHERE username = %s'
-	cursor.execute(query_1, (username))
-	data_1 = cursor.fetchone()
-	query_2 = 'SELECT * FROM airline_staff WHERE airline_name = %s'
-	cursor.execute(query_2, (airline_name))
-	data_2 = cursor.fetchall()
+	query = 'SELECT * FROM airline_staff WHERE username = %s'
+	cursor.execute(query, (username))
+	data = cursor.fetchone()
 	error = None
-	if(data_1):
+	if(data):
 		#If the previous query returns data, then user exists
 		error = "This user already exists"
-		return render_template('staff_register.html', error = error)
-	elif(not data_2):
-		#If the previous query returns data, then user exists
-		error = "There is no such airline"
 		return render_template('staff_register.html', error = error)
 	else:
 		ins = 'INSERT INTO airline_staff VALUES(%s, %s, %s, %s, %s, %s)'
@@ -219,7 +212,7 @@ def loginAuth():
 			return redirect(url_for('staff_home'))
 	else:
 		#returns an error message to the html page
-		error = 'Invalid login or username'
+		error = 'Invalid login or username.'
 		return render_template('login.html', error=error)
 
 
@@ -229,6 +222,8 @@ def customer_home():
 		usertype = session['type']
 		if usertype == "Customer":
 			return render_template('customer_home.html')
+		else:
+			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
 
@@ -238,6 +233,8 @@ def agent_home():
 		usertype = session['type']
 		if usertype == "Booking Agent":
 			return render_template('agent_home.html')
+		else:
+			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
 
@@ -247,6 +244,8 @@ def staff_home():
 		usertype = session['type']
 		if usertype == "Airline Staff":
 			return render_template('staff_home.html')
+		else:
+			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
 
@@ -257,7 +256,7 @@ def c_view():
 		usertype = session['type']
 		if usertype == "Customer":
 			cursor = conn.cursor()
-			query = 'SELECT airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id, status FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND status = "upcoming"'
+			query = 'SELECT airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND status = "upcoming"'
 			cursor.execute(query, (username))
 			data = cursor.fetchall()
 			cursor.close()
@@ -272,9 +271,47 @@ def c_view():
 	except KeyError:
 		return render_template('wrong.html')
 
+"""@app.route('/c_opview')
+def c_opview():
+	try:
+		usertype = session['type']
+		if usertype == "Customer":
+			return render_template('c_opview.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/c_opviewAuth')
+def c_opviewAuth():
+	try:
+		username = session['value']
+		usertype = session['type']
+		start = request.form['start']
+		end = request.form['end']
+		source = request.form['source']
+		destination = request.form['destination']
+		if usertype == "Customer":
+			cursor = conn.cursor()
+			if (source == 0) or (destination == 0):
+				query = 'SELECT airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id, status FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND status = "upcoming" and (departure_time between %s and %s)'
+				cursor.execute(query, (start, end))
+			elif (start == 0) or (end == 0):
+				query = 'SELECT airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id, status FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND status = "upcoming" and (departure_time between %s and %s)'"""
+
+
+
 @app.route('/c_search')
 def c_search():
-	return render_template('c_search.html')
+	try:
+		usertype = session['type']
+		if usertype == "Customer":
+			return render_template('c_search.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 
 @app.route('/c_searchAuth', methods = ['GET','POST'])
 def c_searchAuth():
@@ -302,7 +339,15 @@ def c_searchAuth():
 
 @app.route('/c_purchase')
 def c_purchase():
-	return render_template('c_purchase.html')
+	try:
+		usertype = session['type']
+		if usertype == "Customer":
+			return render_template('c_purchase.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 
 @app.route('/c_purchaseAuth', methods = ['GET', 'POST'])
 def c_purchaseAuth():
@@ -329,7 +374,14 @@ def c_purchaseAuth():
 
 @app.route('/c_buy')
 def c_buy():
-	return render_template('c_buy.html')
+	try:
+		usertype = session['type']
+		if usertype == "Customer":
+			return render_template('c_buy.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
 
 @app.route('/c_buyAuth', methods = ['GET', 'POST'])
 def c_buyAuth():
@@ -343,7 +395,7 @@ def c_buyAuth():
 			cursor.execute(query, (ticket_id, username))
 			conn.commit()
 			cursor.close()
-			return render_template('customer_home.html')
+			return render_template('customer_home.html', post = "Successfully buy.")
 		else:
 			return render_template('wrong.html')
 	except KeyError:
@@ -433,7 +485,7 @@ def a_view():
 		usertype = session['type']
 		if usertype == "Booking Agent":
 			cursor = conn.cursor()
-			query = 'SELECT customer_email, airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id, status FROM flight natural join ticket natural join purchases natural join booking_agent WHERE email = %s AND status = "upcoming"'
+			query = 'SELECT customer_email, airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id FROM flight natural join ticket natural join purchases natural join booking_agent WHERE email = %s AND status = "upcoming"'
 			cursor.execute(query, (username))
 			data = cursor.fetchall()
 			cursor.close()
@@ -450,7 +502,14 @@ def a_view():
 
 @app.route('/a_search')
 def a_search():
-	return render_template('a_search.html')
+	try:
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			return render_template('a_search.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
 
 @app.route('/a_searchAuth', methods = ['GET','POST'])
 def a_searchAuth():
@@ -478,8 +537,15 @@ def a_searchAuth():
 
 @app.route('/a_purchase')
 def a_purchase():
-	return render_template('a_purchase.html')
-
+	try:
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			return render_template('a_purchase.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+	
 @app.route('/a_purchaseAuth', methods = ['GET', 'POST'])
 def a_purchaseAuth():
 	try:
@@ -505,19 +571,26 @@ def a_purchaseAuth():
 
 @app.route('/a_buy')
 def a_buy():
-	return render_template('a_buy.html')
+	try:
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			return render_template('a_buy.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
 
 @app.route('/a_buyAuth', methods = ['GET', 'POST'])
 def a_buyAuth():
 	try:
-		username = session['value']
 		usertype = session['type']
 		if usertype == "Booking Agent":
+			booking_agent_id = request.form['booking agent id']
 			ticket_id = request.form['ticket id']
 			customer = request.form['customer']
 			cursor = conn.cursor()
 			query = 'INSERT INTO purchases values (%s, %s, %s, CURRENT_DATE())'
-			cursor.execute(query, (ticket_id, customer, username))
+			cursor.execute(query, (ticket_id, customer, booking_agent_id))
 			conn.commit()
 			cursor.close()
 			return render_template('agent_home.html')
@@ -526,6 +599,64 @@ def a_buyAuth():
 	except KeyError:
 		return render_template('wrong.html')
 
+@app.route('/a_commission')
+def a_commission():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			cursor = conn.cursor()
+			query = "SELECT 0.1 * sum(price) as Total, count(ticket_id) as Amount, 0.1 * sum(price)/count(ticket_id) as Average FROM purchases natural join ticket natural join flight natural join booking_agent WHERE email = %s AND (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 MONTH) AND CURRENT_DATE())"
+			cursor.execute(query, (username))
+			data = cursor.fetchone()
+			conn.commit()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('a_commission.html', post = data)
+			else:
+				error = "Nothing"
+				return render_template('a_commission.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/a_commissiondetail')
+def a_commissiondetail():
+	try:
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			return render_template('a_commissiondetail.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/a_commissiondetailAuth', methods = ['GET', 'POST'])
+def a_commissiondetailAuth():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			start = request.form['start']
+			end = request.form['end']
+			cursor = conn.cursor()
+			query = "SELECT 0.1 * sum(price) as Total, count(ticket_id) as Amount FROM purchases natural join ticket natural join flight natural join booking_agent WHERE email = %s AND (purchase_date BETWEEN %s AND %s)"
+			cursor.execute(query, (username, start, end))
+			data = cursor.fetchone()
+			conn.commit()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('a_commissiondetail.html', post = data)
+			else:
+				error = "Nothing"
+				return render_template('a_commissiondetail.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
 
 @app.route('/a_top')
 def a_top():
@@ -849,10 +980,18 @@ def staff_logout():
 
 @app.route('/customer_logout')
 def customer_logout():
-	session.pop('value')
-	session.pop('password')
-	session.pop('type')
-	return redirect('/')
+	try:
+		usertype = session['type']
+		if usertype == "Customer":
+			session.pop('value')
+			session.pop('password')
+			session.pop('type')
+			return redirect('/')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 
 @app.route('/agent_logout')
 def agent_logout():

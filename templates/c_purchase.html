@@ -24,6 +24,7 @@
 		<th>price</th>
 		<th>status</th>
 		<th>airplane_id</th>
+		<th>status</th>
 	</tr>
 	{% for dic in post %}
 	<tr>
@@ -36,9 +37,10 @@
 		<td>{{dic.price}}</td>
 		<td>{{dic.status}}</td>
 		<td>{{dic.airplane_id}}</td>
+		<td>{{dic.status}}</td>
 	</tr>
 	{% endfor %} 
 </form>
-<a href="/customer_home">Go back</a>
+<a href="/c_search">Go back</a>
 </body>
 </html>

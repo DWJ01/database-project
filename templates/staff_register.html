@@ -8,14 +8,21 @@
 	<input type="text" name = "first name" placeholder="first name" required/> </br>
 	<input type="text" name = "last name" placeholder="last name" required/> </br>
 	<input type="text" name = "date of birth" placeholder="date of birth" required/> </br>
-	<input type="text" name = "airline name" placeholder="airline name" required/> </br>
+	<input list="airline name" name = "airline name" placeholder="airline name" required/> </br>
+	<datalist id = "airline name">
+		<option value = "Air Canada">
+		<option value = "China Eastern">
+		<option value = "Emirates">
+		<option value = "Hawaiian">
+		<option value = "Hokkaido">
+	</datalist>
 	<input type="submit" value = Register />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
 
-<a href="/">Go back</a>
+<a href="/register">Go back</a>
 
 </body>
 

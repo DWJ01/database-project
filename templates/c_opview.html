@@ -6,15 +6,18 @@
 </head>
 
 <body>
-<form action="/a_searchAuth" method="POST">
+<form action="/c_opviewAuth" method="POST">
+	<p>Search by time or place, or both.</p>
+	<input type="text" name="start" placeholder="start" /></br>
+	<input type="text" name="end" placeholder="end" /></br>
 	<input type="text" name="source" placeholder="source" required/></br>
 	<input type="text" name="destination" placeholder="destination" required/></br>
-	<input type="text" name="date" placeholder="date" required/></br>
 	<input type="submit" value=Search /></br>
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
+	<p>{{post}}</p>
 </form>
-<a href="/agent_home">Go back</a>
+<a href="/customer_home">Go back</a>
 </body>
 </html>

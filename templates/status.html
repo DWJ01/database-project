@@ -4,14 +4,18 @@
 <body>
 <form action="/statusAuth" method = "Post">
 	<input type="text" name = "flight number" placeholder="fligh number" required/></br>
-	<input type="text" name = "arrival/departure" placeholder="arrival/departure" required/></br>
+	<input list="time" name = "time" placeholder="time" required/></br>
+	<datalist id ="time">
+		<option value = "arrival">
+		<option value = "departure">
+	</datalist>
 	<input type="text" name = "date" placeholder = "date" required/></br>
-	<input type="submit" value = Status />
+	<input type="submit" value = Search />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
 <p>{{post}}</br></p>
-<a href="/">Go back</a>
+<a href="/info">Go back</a>
 </body>
 </html>
