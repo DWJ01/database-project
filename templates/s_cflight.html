@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+
+<body>
+<form action="s_cflightAuth" method="POST">
+	<input type="text" name="flight number" placeholder="flight number" required/></br>
+	<input type="text" name="departure airport" placeholder="departure airport" required/></br>
+	<input type="text" name="departure time" placeholder="departure time" required/></br>
+	<input type="text" name="arrival airport" placeholder="arrival airport" required/></br>
+	<input type="text" name="arrival time" placeholder="arrival time" required/></br>
+	<input type="text" name="price" placeholder="price" required/></br>
+	<input type="text" name="status" placeholder="status" required/></br>
+	<input type="text" name="airplane id" placeholder="airplane id" required/></br>
+	<input type="submit" value=Search /></br>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	<p>{{post}}</p>
+</form>
+<a href="/staff_home">Go back</a>
+</body>
+</html>

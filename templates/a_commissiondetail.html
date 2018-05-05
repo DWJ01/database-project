@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+
+<body>
+<form action="a_commissiondetailAuth" method="POST">
+	<input type="text" name="start" placeholder="start" required/></br>
+	<input type="text" name="end" placeholder="end" required/></br>
+	<input type="submit" value=Search /></br>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	<p>{{post}}</p>
+</form>
+<a href="/agent_home">Go back</a>
+</body>
+</html>
