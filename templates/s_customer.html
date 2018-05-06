@@ -12,7 +12,16 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<table border="1">
+	<tr>
+		<th>customer_email</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.customer_email}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 </form>
 <a href="/s_view">Go back</a>
 </body>

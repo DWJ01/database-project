@@ -1,3 +1,4 @@
+import hashlib
 from pyecharts import Bar
 from pyecharts import Pie
 from pyecharts import Page
@@ -105,6 +106,9 @@ def c_register():
 	pass_exp = request.form['passport expiration']
 	pass_country = request.form['passport country']
 	dob = request.form['date of birth']
+	h1 = hashlib.md5()
+	h1.update(password.encode(encoding='utf-8'))
+	passwordmd5 = h1.hexdigest()
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
@@ -121,7 +125,7 @@ def c_register():
 		return render_template('customer_register.html', error = error)
 	else:
 		ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-		cursor.execute(ins, (email, name, password, b_number, street, city, state, phone_num, pass_num, pass_exp, pass_country, dob))
+		cursor.execute(ins, (email, name, passwordmd5, b_number, street, city, state, phone_num, pass_num, pass_exp, pass_country, dob))
 		conn.commit()
 		cursor.close()
 		return render_template('index.html')
@@ -131,6 +135,9 @@ def a_register():
 	email = request.form['email']
 	password = request.form['password']
 	agent_id = request.form['booking agent id']
+	h1 = hashlib.md5()
+	h1.update(password.encode(encoding='utf-8'))
+	passwordmd5 = h1.hexdigest()
 	cursor = conn.cursor()
 	query = 'SELECT * FROM booking_agent WHERE email = %s'
 	cursor.execute(query, (email))
@@ -142,7 +149,7 @@ def a_register():
 		return render_template('agent_register.html', error = error)
 	else:
 		ins = 'INSERT INTO booking_agent VALUES(%s, %s, %s)'
-		cursor.execute(ins, (email, password, agent_id))
+		cursor.execute(ins, (email, passwordmd5, agent_id))
 		conn.commit()
 		cursor.close()
 		return render_template('index.html')
@@ -155,6 +162,9 @@ def s_register():
 	l_name = request.form['last name']
 	dob = request.form['date of birth']
 	airline_name = request.form['airline name']
+	h1 = hashlib.md5()
+	h1.update(password.encode(encoding='utf-8'))
+	passwordmd5 = h1.hexdigest()
 	cursor= conn.cursor()
 	query = 'SELECT * FROM airline_staff WHERE username = %s'
 	cursor.execute(query, (username))
@@ -166,7 +176,7 @@ def s_register():
 		return render_template('staff_register.html', error = error)
 	else:
 		ins = 'INSERT INTO airline_staff VALUES(%s, %s, %s, %s, %s, %s)'
-		cursor.execute(ins, (username, password, f_name, l_name, dob, airline_name))
+		cursor.execute(ins, (username, passwordmd5, f_name, l_name, dob, airline_name))
 		conn.commit()
 		cursor.close()
 		return render_template('index.html')
@@ -179,18 +189,21 @@ def loginAuth():
 	username = request.form['username']
 	password = request.form['password']
 	usertype = request.form['usertype']
+	h1 = hashlib.md5()
+	h1.update(password.encode(encoding='utf-8'))
+	passwordmd5 = h1.hexdigest()
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
 	if usertype == "Customer":
 		query = 'SELECT * FROM customer WHERE email = %s and password = %s'
-		cursor.execute(query, (username, password))
+		cursor.execute(query, (username, passwordmd5))
 	elif usertype == "Booking Agent":
 		query = 'SELECT * FROM booking_agent WHERE email = %s and password = %s'
-		cursor.execute(query, (username, password))
+		cursor.execute(query, (username, passwordmd5))
 	elif usertype == "Airline Staff":
 		query = 'SELECT * FROM airline_staff WHERE username = %s and password = %s'
-		cursor.execute(query, (username, password))
+		cursor.execute(query, (username, passwordmd5))
     #stores the results in a variable
 	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row

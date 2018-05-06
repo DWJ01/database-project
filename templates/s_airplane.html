@@ -13,7 +13,18 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<table border="1">
+	<tr>
+		<th>airline_name</th>
+		<th>airplane_id</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.airline_name}}</td>
+		<td>{{dic.airplane_id}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 </form>
 <a href="/staff_home">Go back</a>
 </body>
