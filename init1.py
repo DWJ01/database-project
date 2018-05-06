@@ -64,15 +64,11 @@ def searchAuth():
 @app.route('/statusAuth', methods=['GET', 'POST'])
 def statusAuth():
         flight_num = request.form['flight number']
-        time = request.form['time']
-        date = request.form['date']
+        departure = request.form['departure']
+        arrival = request.form['arrival']
         cursor = conn.cursor()
-        if time == "arrival":
-        	query = "SELECT status FROM flight WHERE flight_num = %s and date(arrival_time) = %s"
-        	cursor.execute(query, (flight_num, date))
-        elif time == "departure":
-        	query = "SELECT status FROM flight WHERE flight_num = %s and date(departure_time) = %s"
-        	cursor.execute(query, (flight_num, date))
+        query = "SELECT status FROM flight WHERE flight_num = %s and date(departure_time) = %s and date(arrival_time) = %s"
+        cursor.execute(query, (flight_num, departure, arrival))
         data = cursor.fetchall()
         cursor.close()
         error = None
@@ -359,6 +355,7 @@ def c_purchase():
 @app.route('/c_purchaseAuth', methods = ['GET', 'POST'])
 def c_purchaseAuth():
 	try:
+		username = session['value']
 		usertype = session['type']
 		if usertype == "Customer":
 			airline_name = request.form['airline name']
@@ -370,7 +367,13 @@ def c_purchaseAuth():
 			cursor.close()
 			error = None
 			if(data):
-				return render_template('c_buy.html', post = data)
+				ticket_id = data['ticket_id']
+				cursor = conn.cursor()
+				query = 'INSERT INTO purchases values (%s, %s, null, CURRENT_DATE())'
+				cursor.execute(query, (ticket_id, username))
+				conn.commit()
+				cursor.close()
+				return render_template('customer_home.html', post = "Successfully buy.")
 			else:
 				error = "No ticket left"
 				return render_template('c_purchase.html', error = error)
@@ -379,34 +382,6 @@ def c_purchaseAuth():
 	except KeyError:
 		return render_template('wrong.html')
 
-@app.route('/c_buy')
-def c_buy():
-	try:
-		usertype = session['type']
-		if usertype == "Customer":
-			return render_template('c_buy.html')
-		else:
-			return render_template('wrong.html')
-	except KeyError:
-		return render_template('wrong.html')
-
-@app.route('/c_buyAuth', methods = ['GET', 'POST'])
-def c_buyAuth():
-	try:
-		username = session['value']
-		usertype = session['type']
-		if usertype == "Customer":
-			ticket_id = request.form['ticket id']
-			cursor = conn.cursor()
-			query = 'INSERT INTO purchases values (%s, %s, null, CURRENT_DATE())'
-			cursor.execute(query, (ticket_id, username))
-			conn.commit()
-			cursor.close()
-			return render_template('customer_home.html', post = "Successfully buy.")
-		else:
-			return render_template('wrong.html')
-	except KeyError:
-		return render_template('wrong.html')
 
 @app.route('/c_spending')
 def c_spending():
@@ -606,7 +581,7 @@ def a_buyAuth():
 			cursor.execute(query, (ticket_id, customer, booking_agent_id))
 			conn.commit()
 			cursor.close()
-			return render_template('agent_home.html')
+			return render_template('agent_home.html', post = "Successfully buy.")
 		else:
 			return render_template('wrong.html')
 	except KeyError:
