@@ -7,7 +7,6 @@
 
 <body>
 <form action="s_customerAuth" method="POST">
-	<input type="text" name="airline name" placeholder="airline name" required/></br>
 	<input type="text" name="flight number" placeholder="flight number" required/></br>
 	<input type="submit" value=Search /></br>
 	{% if error %}
@@ -15,6 +14,6 @@
 	{% endif %}
 	<p>{{post}}</p>
 </form>
-<a href="/staff_home">Go back</a>
+<a href="/s_view">Go back</a>
 </body>
 </html>

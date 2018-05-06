@@ -274,35 +274,6 @@ def c_view():
 	except KeyError:
 		return render_template('wrong.html')
 
-"""@app.route('/c_opview')
-def c_opview():
-	try:
-		usertype = session['type']
-		if usertype == "Customer":
-			return render_template('c_opview.html')
-		else:
-			return render_template('wrong.html')
-	except KeyError:
-		return render_template('wrong.html')
-
-@app.route('/c_opviewAuth')
-def c_opviewAuth():
-	try:
-		username = session['value']
-		usertype = session['type']
-		start = request.form['start']
-		end = request.form['end']
-		source = request.form['source']
-		destination = request.form['destination']
-		if usertype == "Customer":
-			cursor = conn.cursor()
-			if (source == 0) or (destination == 0):
-				query = 'SELECT airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id, status FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND status = "upcoming" and (departure_time between %s and %s)'
-				cursor.execute(query, (start, end))
-			elif (start == 0) or (end == 0):
-				query = 'SELECT airline_name, flight_num, ticket_id, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id, status FROM flight natural join ticket natural join purchases WHERE customer_email = %s AND status = "upcoming" and (departure_time between %s and %s)'"""
-
-
 
 @app.route('/c_search')
 def c_search():
@@ -720,12 +691,12 @@ def a_topyear():
 @app.route('/s_view')
 def s_view():
 	try:
-		username = session['value']
 		usertype = session['type']
+		airline = session['airline']
 		if usertype == "Airline Staff":
 			cursor = conn.cursor()
-			query = "SELECT airline_name, flight_num, departure_airport, departure_time, arrival_airport, arrival_time, price, airplane_id FROM airline_staff natural join flight WHERE username = %s AND status = 'upcoming' AND (departure_time BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(),INTERVAL 1 MONTH))"
-			cursor.execute(query, (username))
+			query = "SELECT flight.* FROM flight WHERE airline_name = %s AND status = 'upcoming' AND (departure_time BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(),INTERVAL 1 MONTH))"
+			cursor.execute(query, (airline))
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
@@ -733,7 +704,7 @@ def s_view():
 				return render_template('s_view.html', post = data)
 			else:
 				error = "There is no flight for my airline in the next 30 days."
-				return render_template('c_view.html', error = error)
+				return render_template('s_view.html', error = error)
 		else:
 			return render_template('wrong.html')
 	except KeyError:
@@ -749,29 +720,78 @@ def s_viewflight():
 			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
-	
-@app.route('/s_viewflightAuth', methods = ['GET', 'POST'])
-def s_viewflightAuth():
+
+
+@app.route('/s_viewflightdate')
+def s_viewflightdate():
 	try:
 		usertype = session['type']
 		if usertype == "Airline Staff":
-			airline_name = request.form['airline name']
-			flight_num = request.form['flight number']
-			cursor = conn.cursor()
-			query = 'SELECT ticket_id FROM ticket WHERE airline_name = %s and flight_num = %s and ticket_id not in (SELECT ticket_id from purchases)'
-			cursor.execute(query, (airline_name, flight_num))
-			data = cursor.fetchall()
-			cursor.close()
-			error = None
-			if(data):
-				return render_template('a_buy.html', post = data)
-			else:
-				error = "No ticket left"
-				return render_template('a_purchase.html', error = error)
+			return render_template('s_viewflightdate.html')
 		else:
 			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
+
+@app.route('/s_viewflightdateAuth', methods = ['GET', 'POST'])
+def s_viewflightdateAuth():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			start = request.form['start time']
+			end = request.form['end time']
+			cursor = conn.cursor()
+			query = 'SELECT flight.* FROM flight WHERE airline_name = %s and (departure_time BETWEEN %s AND %s)'
+			cursor.execute(query, (airline, start, end))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_viewflightdate.html', post = data)
+			else:
+				error = "No such flight"
+				return render_template('s_viewflightdate.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_viewflightplace')
+def s_viewflightplace():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_viewflightplace.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_viewflightplaceAuth', methods = ['GET', 'POST'])
+def s_viewflightplaceAuth():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			source = request.form['source']
+			destination = request.form['destination']
+			cursor = conn.cursor()
+			query = "SELECT flight.* FROM flight, airport as T1, airport as T2 WHERE airline_name = %s and departure_airport = T1.airport_name and arrival_airport = T2.airport_name and (departure_airport = %s or T1.airport_city = %s) and (arrival_airport = %s or T2.airport_city = %s)"
+			cursor.execute(query, (airline, source, source, destination, destination))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_viewflightplace.html', post = data)
+			else:
+				error = "No such flight"
+				return render_template('s_viewflightplace.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 
 @app.route('/s_customer')
 def s_customer():
@@ -787,13 +807,13 @@ def s_customer():
 @app.route("/s_customerAuth", methods = ['GET', 'POST'])
 def s_customerAuth():
 	try:
-		username = session['value']
 		usertype = session['type']
+		airline = session['airline']
 		if usertype == "Airline Staff":
 			flight_num = request.form['flight number']
 			cursor = conn.cursor()
-			query = 'SELECT email, name FROM (flight natural join ticket natural join purchases natural join airline_staff) as T, customer WHERE T.customer_email = customer.email AND username = %s AND flight.flight_num = %s'
-			cursor.execute(query, (username, flight_num))
+			query = 'SELECT customer_email FROM flight natural join ticket natural join purchases WHERE airline_name = %s AND flight_num = %s'
+			cursor.execute(query, (airline, flight_num))
 			data = cursor.fetchall()
 			cursor.close()
 			error = None
