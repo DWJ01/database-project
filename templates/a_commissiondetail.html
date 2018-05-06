@@ -18,10 +18,12 @@
 		<th>Total</th>
 		<th>Amount</th>
 	</tr>
+	{% if post %}
 	<tr>
 		<td>{{post.Total}}</td>
 		<td>{{post.Amount}}</td>
 	</tr>
+	{% endif %}
 	</table>
 </form>
 <a href="/a_commission">Go back</a>
