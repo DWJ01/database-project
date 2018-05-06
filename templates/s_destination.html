@@ -4,12 +4,16 @@
 <head>
 
 </head>
-
 <body>
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-	<p>{{post}}</p>
+{% if not message %}
+    <a href="/s_destinationmonth">View the top 3 most popular destination last 3 months</a></br>
+	<a href="/s_destinationyear">View the top 3 most popular destination last year</a></br>
+{% endif %}
+
+
+<a href="/staff_home">Go Back</a>
+
 </body>
+
 
 </html>

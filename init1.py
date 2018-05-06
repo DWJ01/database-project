@@ -209,6 +209,13 @@ def loginAuth():
 		elif usertype == "Booking Agent":
 			return redirect(url_for('agent_home'))
 		elif usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = 'SELECT airline_name FROM airline_staff WHERE username = %s'
+			cursor.execute(query, (username))
+			data = cursor.fetchone()
+			airline = data['airline_name']
+			session['airline'] = airline
+			cursor.close()
 			return redirect(url_for('staff_home'))
 	else:
 		#returns an error message to the html page
@@ -753,8 +760,15 @@ def s_view():
 
 @app.route('/s_viewflight')
 def s_viewflight():
-	return render_template('s_viewflight.html')
-
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_viewflight.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+	
 @app.route('/s_viewflightAuth', methods = ['GET', 'POST'])
 def s_viewflightAuth():
 	try:
@@ -777,6 +791,352 @@ def s_viewflightAuth():
 			return render_template('wrong.html')
 	except KeyError:
 		return render_template('wrong.html')
+
+@app.route('/s_customer')
+def s_customer():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_customer.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route("/s_customerAuth", methods = ['GET', 'POST'])
+def s_customerAuth():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			flight_num = request.form['flight number']
+			cursor = conn.cursor()
+			query = 'SELECT email, name FROM (flight natural join ticket natural join purchases natural join airline_staff) as T, customer WHERE T.customer_email = customer.email AND username = %s AND flight.flight_num = %s'
+			cursor.execute(query, (username, flight_num))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_customer.html', post = data)
+			else:
+				error = "No customers"
+				return render_template('s_customer.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_cflight')
+def s_cflight():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT flight.* FROM flight where airline_name = %s and (departure_time BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(),INTERVAL 1 MONTH)) and status = 'upcoming'"
+			cursor.execute(query, (airline))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				return render_template('s_cflight.html', post = data)
+			else:
+				error = "No flights"
+				return render_template('s_cflight.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_cflightAuth', methods = ['GET', 'POST'])
+def s_cflightAuth():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			flight_num = request.form['flight number']
+			departure_airport = request.form['departure airport']
+			departure_time = request.form['departure time']
+			arrival_airport = request.form['arrival airport']
+			arrival_time = request.form['arrival time']
+			price = request.form['price']
+			status = request.form['status']
+			airplane_id = request.form['airplane id']
+			cursor = conn.cursor()
+			query = 'SELECT flight.* FROM flight WHERE airline_name = %s and flight_num = %s'
+			cursor.execute(query, (airline, flight_num))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				error = "The flight already exists"
+				return render_template('s_cflight.html', error = error)
+			else:
+				cursor = conn.cursor()
+				query = 'insert into flight values (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(query, (airline, flight_num, departure_airport, departure_time, arrival_airport, arrival_time, price, status, airplane_id))
+				conn.commit()
+				cursor.close()
+				return render_template('s_cflight.html', post = "Successfully Insert.")
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_change')
+def s_change():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_change.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_changeAuth', methods = ['GET', 'POST'])
+def s_changeAuth():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			flight_num = request.form['flight number']
+			status = request.form['status']
+			cursor = conn.cursor()
+			query = 'SELECT flight.* FROM flight where airline_name = %s and flight_num = %s'
+			cursor.execute (query, (airline, flight_num))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				cursor = conn.cursor()
+				query = 'UPDATE flight SET status = %s WHERE airline_name = %s and flight_num = %s'
+				cursor.execute(query, (status, airline, flight_num))
+				conn.commit()
+				cursor.close()
+				return render_template('s_change.html', post = "Update Successfully")
+			else:
+				error = "No such flight"
+				return render_template('s_change.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_airplane')
+def s_airplane():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_airplane.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_airplaneAuth', methods = ['GET', 'POST'])
+def s_airplaneAuth():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			airplane_id = request.form['airplane id']
+			seats = request.form['seats']
+			cursor = conn.cursor()
+			query = 'SELECT airplane.* FROM airplane WHERE airline_name = %s and airplane_id = %s'
+			cursor.execute(query, (airline, airplane_id))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				error = "The airplane already exists."
+				return render_template('s_airplane.html', error = error)
+			else:
+				cursor = conn.cursor()
+				query = 'insert into airplane values (%s, %s, %s)'
+				cursor.execute(query, (airline, airplane_id, seats))
+				conn.commit()
+				cursor.close()
+				cursor = conn.cursor()
+				query = 'SELECT airplane.* FROM airplane WHERE airline_name = %s'
+				cursor.execute(query, (airline))
+				data = cursor.fetchall()
+				cursor.close()
+				return render_template('s_airplane.html', post = data)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_airport')
+def s_airport():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_airport.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_airportAuth', methods = ['GET', 'POST'])
+def s_airportAuth():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			airport_name = request.form['airport name']
+			airport_city = request.form['airport city']
+			cursor = conn.cursor()
+			query = 'SELECT airport.* FROM airport WHERE airport_name = %s'
+			cursor.execute(query, (airport_name))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if (data):
+				error = "This airport already exists."
+				return render_template('s_airport.html', error = error)
+			else:
+				cursor = conn.cursor()
+				query = 'insert into airport values (%s, %s)'
+				cursor.execute(query, (airport_name, airport_city))
+				conn.commit()
+				cursor.close()
+				return render_template('s_airport.html', post = "Successfully Inserted")
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_agent')
+def s_agent():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_agent.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_agentsalemonth')
+def s_agentsalemonth():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT email, booking_agent_id, count(ticket_id) as Total FROM purchases natural join booking_agent WHERE (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 MONTH) AND CURRENT_DATE()) GROUP BY email  ORDER BY count(ticket_id) DESC LIMIT 5"
+			cursor.execute(query)
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_agentsalemonth.html', post = data)
+			else:
+				error = "Not enought booking agent"
+				return render_template('s_agentsalemonth.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_agentsaleyear')
+def s_agentsaleyear():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT email, booking_agent_id, count(ticket_id) as Total FROM purchases natural join booking_agent WHERE (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()) GROUP BY email  ORDER BY count(ticket_id) DESC LIMIT 5"
+			cursor.execute(query)
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_agentsaleyear.html', post = data)
+			else:
+				error = "Not enought booking agent"
+				return render_template('s_agentsaleyear.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_agentcommission')
+def s_agentcommission():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT email, booking_agent_id, sum(price) * 0.1 as Commission FROM ticket natural join flight natural join purchases natural join booking_agent WHERE (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()) GROUP BY email  ORDER BY sum(price) * 0.1 DESC LIMIT 5"
+			cursor.execute(query)
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_agentcommission.html', post = data)
+			else:
+				error = "Not enought booking agent"
+				return render_template('s_agentcommission.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_fcustomer')
+def s_fcustomer():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT email, name, count(ticket_id) as Total FROM ticket natural join purchases as T, customer WHERE airline_name = %s and T.customer_email = customer.email and (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()) GROUP BY email  ORDER BY count(ticket_id) DESC LIMIT 1"
+			cursor.execute(query, (airline))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_fcustomer.html', post = data)
+			else:
+				error = "Not enought customer"
+				return render_template('s_fcustomer.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_particular')
+def s_particular():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_particular.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_particularAuth', methods = ['GET', 'POST'])
+def s_particularAuth():
+	try:
+		usertype = session['type']
+		airline = session['airline']
+		if usertype == "Airline Staff":
+			customer_email = request.form['customer']
+			cursor = conn.cursor()
+			query = "SELECT flight.* FROM flight natural join ticket natural join purchases WHERE customer_email = %s and airline_name = %s"
+			cursor.execute(query, (customer_email, airline))
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_particular.html', post = data)
+			else:
+				error = "Taking no flight of this airline"
+				return render_template('s_particular.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 
 @app.route('/s_report')
 def s_report():
@@ -969,6 +1329,60 @@ def s_comparemonth():
 	except KeyError:
 		return render_template('wrong.html')
 
+@app.route('/s_destination')
+def s_destination():
+	try:
+		username = session['value']
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			return render_template('s_destination.html')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_destinationmonth')
+def s_destinationmonth():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT airport_city, count(ticket_id) as Total FROM purchases natural join ticket natural join flight, airport WHERE airport_name = arrival_airport and (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 3 MONTH) AND CURRENT_DATE()) GROUP BY airport_city ORDER BY count(ticket_id) DESC LIMIT 3"
+			cursor.execute(query)
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_destinationmonth.html', post = data)
+			else:
+				error = "No such place"
+				return render_template('s_destinationmonth.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
+@app.route('/s_destinationyear')
+def s_destinationyear():
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			cursor = conn.cursor()
+			query = "SELECT airport_city, count(ticket_id) as Total FROM purchases natural join ticket natural join flight, airport WHERE airport_name = arrival_airport and (purchase_date BETWEEN DATE_SUB(CURRENT_DATE(),INTERVAL 1 YEAR) AND CURRENT_DATE()) GROUP BY airport_city ORDER BY count(ticket_id) DESC LIMIT 3"
+			cursor.execute(query)
+			data = cursor.fetchall()
+			cursor.close()
+			error = None
+			if(data):
+				return render_template('s_destinationyear.html', post = data)
+			else:
+				error = "No such place"
+				return render_template('s_destinationyear.html', error = error)
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 
 
 @app.route('/staff_logout')
@@ -998,6 +1412,7 @@ def agent_logout():
 	session.pop('value')
 	session.pop('password')
 	session.pop('type')
+	session.pop('airline')
 	return redirect('/')
 		
 app.secret_key = 'some key that you will never guess'
