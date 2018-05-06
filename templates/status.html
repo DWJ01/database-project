@@ -15,7 +15,16 @@
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
-<p>{{post}}</br></p>
+<table border="1">
+	<tr>
+		<th>status</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.status}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 <a href="/info">Go back</a>
 </body>
 </html>

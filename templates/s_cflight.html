@@ -13,13 +13,44 @@
 	<input type="text" name="arrival airport" placeholder="arrival airport" required/></br>
 	<input type="text" name="arrival time" placeholder="arrival time" required/></br>
 	<input type="text" name="price" placeholder="price" required/></br>
-	<input type="text" name="status" placeholder="status" required/></br>
+	<input list="statuslist" name="status" placeholder="status" required/></br>
+	<datalist id="statuslist">
+		<option value="upcoming">
+		<option value="in-progress">
+		<option value="delayed">
+	</datalist>
 	<input type="text" name="airplane id" placeholder="airplane id" required/></br>
 	<input type="submit" value=Add /></br>
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<p>{{message}}</p>
+	<table border="1">
+	<tr>
+		<th>airline_name</th>
+		<th>flight_num</th>
+		<th>departure_airport</th>
+		<th>departure_time</th>
+		<th>arrival_airport</th>
+		<th>arrival_time</th>
+		<th>price</th>
+		<th>status</th>
+		<th>airplane_id</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.airline_name}}</td>
+		<td>{{dic.flight_num}}</td>
+		<td>{{dic.departure_airport}}</td>
+		<td>{{dic.departure_time}}</td>
+		<td>{{dic.arrival_airport}}</td>
+		<td>{{dic.arrival_time}}</td>
+		<td>{{dic.price}}</td>
+		<td>{{dic.status}}</td>
+		<td>{{dic.airplane_id}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 </form>
 <a href="/staff_home">Go back</a>
 </body>

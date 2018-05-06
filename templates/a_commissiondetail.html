@@ -13,7 +13,16 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<table border="1">
+	<tr>
+		<th>Total</th>
+		<th>Amount</th>
+	</tr>
+	<tr>
+		<td>{{post.Total}}</td>
+		<td>{{post.Amount}}</td>
+	</tr>
+	</table>
 </form>
 <a href="/a_commission">Go back</a>
 </body>

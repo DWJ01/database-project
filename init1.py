@@ -590,9 +590,15 @@ def a_buy():
 @app.route('/a_buyAuth', methods = ['GET', 'POST'])
 def a_buyAuth():
 	try:
+		username = session['value']
 		usertype = session['type']
 		if usertype == "Booking Agent":
-			booking_agent_id = request.form['booking agent id']
+			cursor = conn.cursor()
+			query = 'SELECT booking_agent_id FROM booking_agent WHERE email = %s'
+			cursor.execute(query, (username))
+			data = cursor.fetchone()
+			cursor.close()
+			booking_agent_id = data['booking_agent_id']
 			ticket_id = request.form['ticket id']
 			customer = request.form['customer']
 			cursor = conn.cursor()
@@ -872,12 +878,21 @@ def s_cflightAuth():
 				error = "The flight already exists"
 				return render_template('s_cflight.html', error = error)
 			else:
-				cursor = conn.cursor()
-				query = 'insert into flight values (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(query, (airline, flight_num, departure_airport, departure_time, arrival_airport, arrival_time, price, status, airplane_id))
-				conn.commit()
-				cursor.close()
-				return render_template('s_cflight.html', post = "Successfully Insert.")
+				try:
+					cursor = conn.cursor()
+					query = 'insert into flight values (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+					cursor.execute(query, (airline, flight_num, departure_airport, departure_time, arrival_airport, arrival_time, price, status, airplane_id))
+					conn.commit()
+					cursor.close()
+					cursor = conn.cursor()
+					query = "SELECT flight.* FROM flight where airline_name = %s and (departure_time BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(),INTERVAL 1 MONTH)) and status = 'upcoming'"
+					cursor.execute(query, (airline))
+					data = cursor.fetchall()
+					cursor.close()
+					return render_template('s_cflight.html', message = "Successfully Insert.", post = data)
+				except:
+					error = "Pay attention to the constraint!"
+					return render_template('s_cflight.html', error = error)
 		else:
 			return render_template('wrong.html')
 	except KeyError:
@@ -1387,10 +1402,19 @@ def s_destinationyear():
 
 @app.route('/staff_logout')
 def staff_logout():
-	session.pop('value')
-	session.pop('password')
-	session.pop('type')
-	return redirect('/')
+	try:
+		usertype = session['type']
+		if usertype == "Airline Staff":
+			session.pop('value')
+			session.pop('password')
+			session.pop('type')
+			session.pop('airline')
+			return redirect('/')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+	
 
 @app.route('/customer_logout')
 def customer_logout():
@@ -1409,12 +1433,18 @@ def customer_logout():
 
 @app.route('/agent_logout')
 def agent_logout():
-	session.pop('value')
-	session.pop('password')
-	session.pop('type')
-	session.pop('airline')
-	return redirect('/')
-		
+	try:
+		usertype = session['type']
+		if usertype == "Booking Agent":
+			session.pop('value')
+			session.pop('password')
+			session.pop('type')
+			return redirect('/')
+		else:
+			return render_template('wrong.html')
+	except KeyError:
+		return render_template('wrong.html')
+
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000
 #debug = True -> you don't have to restart flask

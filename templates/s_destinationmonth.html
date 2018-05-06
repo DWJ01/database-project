@@ -9,7 +9,18 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<table border="1">
+	<tr>
+		<th>airport_city</th>
+		<th>Total</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.airport_city}}</td>
+		<td>{{dic.Total}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 	<a href="/s_destination">Go Back</a>
 </body>
 

@@ -9,7 +9,20 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<table border="1">
+	<tr>
+		<th>email</th>
+		<th>name</th>
+		<th>Total</th>
+	</tr>
+	{% for dic in post %}
+	<tr>
+		<td>{{dic.email}}</td>
+		<td>{{dic.name}}</td>
+		<td>{{dic.Total}}</td>
+	</tr>
+	{% endfor %}
+	</table>
 	<a href="/s_particular">See a particular customer</a></br>
 	<a href="/staff_home">Go back</a>
 </body>

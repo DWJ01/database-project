@@ -8,7 +8,18 @@
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
-	<p>{{post}}</p>
+	<table border="1">
+	<tr>
+		<th>Total</th>
+		<th>Amount</th>
+		<th>Average</th>
+	</tr>
+	<tr>
+		<td>{{post.Total}}</td>
+		<td>{{post.Amount}}</td>
+		<td>{{post.Average}}</td>
+	</tr>
+	</table>
 	<a href="/a_commissiondetail">View more detailed information</a></br>
 	<a href="/agent_home">Go back</a>
 </body>
